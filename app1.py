@@ -1,26 +1,22 @@
 import streamlit as st
 import joblib
 import pandas as pd
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from pathlib import Path
-import pyarrow.parquet as pq
-import pyarrow as pa
-import tempfile
-import base64
+from reportlab.pdfgen import canvas #provides functionality for generating PDF documents
+from reportlab.lib.pagesizes import letter # predefined page sizes for creating PDF 
+from pathlib import Path # directory path  
+import pyarrow as pa #PyArrow provides columnar data structures
 import re
-import os
-import sys
 
 
 
-st.set_page_config(page_title='Blood Disease Diagnose Sys',page_icon='💊',layout="centered")
+#set up layout
+st.set_page_config(page_title='Blood Disease Diagnose Sys',page_icon='💊',layout="wide")
 
 # Load the models
 typhoid_model = joblib.load("typhoid_model.joblib")
 influenza_model = joblib.load("influenza_model.joblib")
 uti_model = joblib.load("uti_model.joblib")
-malaria_model = joblib.load("malaria_model.joblib")
+malaria_model1 = joblib.load("malaria_model.joblib")
 dengue_model = joblib.load("dengue_model.joblib")
 
 # Create a function to predict diseases
@@ -34,7 +30,7 @@ def predict_disease(disease, Gender, age, wbc, hgb, rbc, plt, lym, mid, grand, h
     elif disease == "UTI":
         prediction = uti_model.predict(input_data)[0]
     elif disease == "Malaria":
-        prediction = malaria_model.predict(input_data)[0]
+        prediction = malaria_model1.predict(input_data)[0]
     elif disease == "Dengue":
         prediction = dengue_model.predict(input_data)[0]
     else:
@@ -95,11 +91,25 @@ state = SessionState(page=None)
 # Set up the Streamlit app layout for Home page
 def home():
     # Add a title
-    st.title(" 🏥 Disease Prediction Web App ")
+    #st.title(" 🩸 Disease Prediction Web App ")
+# Add content to the app
+    st.markdown(
+    """
+    <style>
+    .title {
+        text-align: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-    
+# Add a title
+    st.markdown("<h1 class='title'>🩸Blood Disease Prediction Web App</h1>", unsafe_allow_html=True)
+    st.write("")
+    st.write("")
     # Add some instructions
-    st.write("Enter the following patient details to predict whether they have certain diseases or not.")
+    st.markdown("<font color='medium turquoise'>Enter the following patient details to predict whether they have certain diseases or not.</font>", unsafe_allow_html=True)
     pattern = r'^[a-zA-Z\s]+$'
 
     # input fields for user data
@@ -149,35 +159,35 @@ def home():
 
     if patient_name and patient_id and Refered_by and Residence_of:
             
-            st.markdown("<h1 style='text-align: center; color: #000000;'>Provide CBC Detail</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; color: lightblue;'>Provide CBC Detail</h1>", unsafe_allow_html=True)
 
 
          #input field for user cbc data
             Gender = st.selectbox("Gender (1 for Male, 0 for Female)", [1, 0])
-            age = st.slider("Age", min_value=0, max_value=120, value=30, step=1)
-            wbc = st.number_input("White Blood Cell Count (WBC)", min_value=1.0, max_value=14.0, value=5.0, step=0.1)
-            hgb = st.number_input("Hemoglobin (HGB)",min_value=1.0, max_value=20.0, value=10.0, step=.1)
-            rbc = st.number_input("Red Blood Cell Count (RBC)", min_value=1.0, max_value=20.0, value=5.5, step=.1)
-            plt = st.number_input("Platelet Count (PLT)",min_value=1.0, max_value=600.0, value=200.0, step=1.0)
+            #age = st.slider("Age  (Year.Month) ", min_value=0.0, max_value=120.0, value=30.0, step=0.01)
+            age = st.text_input("Age (Year.Month)", value="30.0")
+            age =float(age)
+            wbc = st.number_input("White Blood Cell Count (WBC)", min_value=1.0, max_value=14.0, value=5.5, step=0.1)
+            hgb = st.number_input("Hemoglobin (HGB)",min_value=1.0, max_value=20.0, value=13.0, step=.1)
+            rbc = st.number_input("Red Blood Cell Count (RBC)", min_value=1.0, max_value=20.0, value=5.0, step=.1)
+            plt = st.number_input("Platelet Count (PLT)",min_value=1.0, max_value=600.0, value=250.0, step=1.0)
             lym = st.number_input("Lymphocytes (LYM)",min_value=5.0, max_value=70.0, value=30.0, step=0.1)
-
-            mid = st.number_input("Mid Cells (MID)", min_value=1.0, max_value=20.0,value=5.0, step=0.1)
-            grand = st.number_input("Granulocytes (GRAND)", min_value=10.0, max_value=90.0,value=60.0, step=0.1)
-            hct = st.number_input("Hematocrit (HCT)", min_value=1.0, max_value=100.0, value=22.0,step=0.1)
-
+            mid = st.number_input("Mid Cells (MID)", min_value=1.0, max_value=20.0,value=15.0, step=0.1)
+            grand = st.number_input("Granulocytes (GRAND)", min_value=15.0, max_value=90.0,value=55.0, step=0.1)
+            hct = st.number_input("Hematocrit (HCT)", min_value=1.0, max_value=100.0, value=44.0,step=0.1)
             mcv = st.number_input("Mean Corpuscular Volume (MCV)",  min_value=20.0, max_value=100.0, value=80.0, step=0.1)
             mch = st.number_input("Mean Corpuscular Hemoglobin (MCH)", min_value=10.0, max_value=100.0, value=26.0, step=0.1)
-            mchc = st.number_input("Mean Corpuscular Hemoglobin Concentration (MCHC)", min_value=5.0, max_value=100.0, value=26.0, step=0.1)
+            mchc = st.number_input("Mean Corpuscular Hemoglobin Concentration (MCHC)", min_value=5.0, max_value=100.0, value=28.0, step=0.1)
 
             
         # Dropdown menu for selecting the disease
             # Display select box label with larger font size
-            st.markdown("<h1 style='text-align: center; color: #000000;'>Select Your Required Disease</h1>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align: center; color: lightblue'>Select Your Required Disease</h2>", unsafe_allow_html=True)
 
             # Display select box
-            selected_disease = st.selectbox("", ("Typhoid", "Influenza", "UTI", "Malaria", "Dengue"))
+            selected_disease = st.selectbox("", ("Malaria","UTI","Influenza","Typhoid","Dengue"))
             # When the user clicks the 'Predict' button, make a prediction
-            st.markdown("<h1 style='text-align: center; color: #000000;'>Click On Predict Button To Predict  Disease</h1>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align: center; color: lightblue'>Click On Predict Button To Predict  Disease</h2>", unsafe_allow_html=True)
 
             if st.button("Predict"):
                 # Call the predict_diseases function with user input
@@ -243,7 +253,7 @@ def home():
 
                 # Display the table
                 st.table(df.to_pandas())
-                st.markdown("<h3 style='text-align: center; color: #000000;'>Click on download button to download a file </h3>", unsafe_allow_html=True)
+                st.markdown("<h3 style='text-align: center; color: lightblue'>Click on download button to download a file </h3>", unsafe_allow_html=True)
 
 
                 st.download_button(label="download button",data=csv_data)        
